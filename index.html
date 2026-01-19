@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía Didáctica Inglés - Escolaris</title>
+    <!-- Fuentes e Íconos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* --- 1. IDENTIDAD VISUAL ESCOLARIS --- */
+        :root {
+            --primary-orange: #db6015;
+            --primary-yellow: #f7be00;
+            --primary-blue: #244b5a;
+            --primary-red: #993921;
+            --bg-light-blue: #f0f8ff;
+            --bg-white: #ffffff;
+            --text-dark: #333333;
+            --shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Sensación de App */
+        }
+
+        body {
+            background-color: #e2e8f0; /* Fondo neutro fuera del iframe/slide */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'Open Sans', sans-serif;
+            color: var(--text-dark);
+        }
+
+        /* --- 2. CONTENEDOR PRINCIPAL (SLIDE) --- */
+        #app-container {
+            width: 100%;
+            max-width: 1000px; /* Ancho máximo para legibilidad */
+            aspect-ratio: 16/9; /* Proporción panorámica */
+            background-color: var(--bg-white);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Ajuste para móviles: quita el ratio fijo y permite scroll si es necesario */
+        @media (max-width: 768px) {
+            #app-container {
+                aspect-ratio: auto;
+                height: 100vh;
+                border-radius: 0;
+            }
+        }
+
+        /* --- 3. ESTILOS DE DIAPOSITIVAS --- */
+        .slide {
+            flex: 1;
+            display: none; /* Ocultas por defecto */
+            padding: 40px 60px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.4s ease-out;
+            overflow-y: auto; /* Permite scroll interno si el contenido es mucho */
+            width: 100%; /* Asegura que no se desborde */
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Tipografía */
+        h1 { 
+            font-size: 2.5rem; 
+            color: var(--primary-blue); 
+            margin: 0 0 15px 0; 
+            text-align: center;
+            word-wrap: break-word; /* FIX: Evita que palabras largas rompan el margen */
+            overflow-wrap: break-word;
+            max-width: 100%;
+            line-height: 1.2;
+        }
+        
+        h2 { font-size: 2rem; color: var(--primary-blue); margin: 0 0 20px 0; text-align: center; }
+        h3 { font-size: 1.5rem; color: var(--primary-orange); margin: 10px 0; }
+        p, li { font-size: 1.2rem; line-height: 1.6; max-width: 800px; }
+        strong { color: var(--primary-blue); }
+
+        /* --- 4. NAVEGACIÓN (FLECHAS) --- */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            color: var(--primary-blue);
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--primary-orange);
+            color: white;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .prev-btn { left: 20px; }
+        .next-btn { right: 20px; }
+        
+        /* Deshabilitar flecha si no hay más slides */
+        .nav-btn.hidden { opacity: 0; pointer-events: none; }
+
+        /* Barra de Progreso */
+        .progress-container {
+            height: 8px;
+            background-color: #eee;
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-yellow);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* --- 5. COMPONENTES INTERNOS --- */
+        
+        /* Grids y Layouts */
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+            width: 100%;
+        }
+        @media (max-width: 768px) { .two-columns { grid-template-columns: 1fr; } }
+
+        /* Tarjetas de Vocabulario */
+        .vocab-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .vocab-card {
+            background: white;
+            border: 2px solid var(--primary-blue);
+            border-radius: 15px;
+            padding: 20px;
+            width: 200px;
+            text-align: center;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .vocab-card:hover {
+            transform: translateY(-5px);
+            background-color: var(--bg-light-blue);
+        }
+        .vocab-icon { font-size: 40px; color: var(--primary-orange); margin-bottom: 10px; }
+        .vocab-word { font-size: 1.5rem; font-weight: bold; display: block; color: var(--primary-blue); }
+        .vocab-def { font-size: 1rem; color: #666; font-style: italic; }
+
+        /* Imágenes */
+        .responsive-img {
+            width: 100%;
+            max-height: 350px;
+            object-fit: cover;
+            border-radius: 15px;
+            border: 4px solid var(--bg-light-blue);
+        }
+        
+        /* Botones de Actividad */
+        .activity-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+        }
+        .option-btn {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .option-btn:hover { border-color: var(--primary-blue); background-color: var(--bg-light-blue); }
+        
+        .option-btn.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
+        .option-btn.incorrect { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+
+        /* Feedback */
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* Feedback de Exploración (Slide 7) */
+        #cafe-feedback {
+            width: 100%;
+            padding: 15px; 
+            background: #e8f4fd; 
+            border-left: 5px solid var(--primary-blue); 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            align-items: center; 
+            font-style: italic; 
+            color: var(--primary-blue);
+            min-height: 60px;
+            transition: background-color 0.3s;
+        }
+
+        /* Video Wrapper */
+        .video-container {
+            width: 80%;
+            max-width: 700px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* Estilos específicos para la portada */
+        .cover-tag {
+            background-color: var(--primary-yellow);
+            color: var(--primary-blue);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <!-- Flechas de Navegación -->
+        <button class="nav-btn prev-btn hidden" onclick="changeSlide(-1)">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="nav-btn next-btn" onclick="changeSlide(1)">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <!-- ================= DIAPOSITIVAS ================= -->
+
+        <!-- SLIDE 1: Portada -->
+        <div class="slide active">
+            <span class="cover-tag">Inglés • Básico 1 • Lección 1</span>
+            <!-- FIX: Título optimizado para márgenes -->
+            <h1>Vocabulario Esencial</h1>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">Palabras de alta frecuencia para empezar a hablar hoy.</p>
+            
+            <!-- Imagen de portada -->
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                 alt="Estudiantes adultos aprendiendo" class="responsive-img" style="max-width: 500px;">
+
+            <div style="background-color: var(--bg-light-blue); padding: 15px 30px; border-radius: 50px; margin-top: 30px;">
+                <strong style="color: var(--primary-orange);">¡Nunca es tarde para aprender inglés!</strong>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Objetivos -->
+        <div class="slide">
+            <h2><i class="fa-solid fa-bullseye" style="color: var(--primary-red);"></i> Objetivos de hoy</h2>
+            <div class="two-columns">
+                <div>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 20px; display: flex; align-items: center;">
+                            <i class="fa-solid fa-check-circle" style="color: var(--primary-orange); font-size: 1.5rem; margin-right: 15px;"></i>
+                            <span><strong>Identificar</strong> verbos básicos como "Go" y "Need".</span>
+                        </li>
+                        <li style="margin-bottom: 20px; display: flex; align-items: center;">
+                            <i class="fa-solid fa-check-circle" style="color: var(--primary-orange); font-size: 1.5rem; margin-right: 15px;"></i>
+                            <span><strong>Reconocer</strong> palabras comunes en situaciones diarias.</span>
+                        </li>
+                        <li style="margin-bottom: 20px; display: flex; align-items: center;">
+                            <i class="fa-solid fa-check-circle" style="color: var(--primary-orange); font-size: 1.5rem; margin-right: 15px;"></i>
+                            <span><strong>Pronunciar</strong> tus primeras expresiones con seguridad.</span>
+                        </li>
+                    </ul>
+                </div>
+                <div style="text-align: center;">
+                    <i class="fa-solid fa-book-open-reader" style="font-size: 150px; color: var(--primary-blue); opacity: 0.8;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: Activación -->
+        <div class="slide">
+            <h2>¿Sabías que ya sabes inglés?</h2>
+            <p style="text-align: center; margin-bottom: 30px;">Seguro has visto estas palabras en películas o internet:</p>
+            
+            <div class="vocab-container">
+                <div class="vocab-card">
+                    <i class="fa-solid fa-heart vocab-icon" style="color: var(--primary-red);"></i>
+                    <span class="vocab-word">Love</span>
+                    <span class="vocab-def">Amor</span>
+                </div>
+                <div class="vocab-card">
+                    <i class="fa-solid fa-thumbs-up vocab-icon" style="color: var(--primary-blue);"></i>
+                    <span class="vocab-word">Like</span>
+                    <span class="vocab-def">Gustar / "Me gusta"</span>
+                </div>
+                <div class="vocab-card">
+                    <i class="fa-solid fa-circle-stop vocab-icon" style="color: var(--primary-orange);"></i>
+                    <span class="vocab-word">Stop</span>
+                    <span class="vocab-def">Parar / Alto</span>
+                </div>
+            </div>
+            
+            <p style="margin-top: 30px; font-style: italic; color: var(--primary-blue);">Hoy vamos a sumar nuevas palabras útiles a esta lista.</p>
+        </div>
+
+        <!-- SLIDE 4: Palabras Clave (Verbos) -->
+        <div class="slide">
+            <h2>1. Verbos de Acción (Action Verbs)</h2>
+            <p>Son las palabras que indican una acción. ¡Son el motor del idioma!</p>
+            
+            <div class="vocab-container">
+                <div class="vocab-card">
+                    <i class="fa-solid fa-person-walking-arrow-right vocab-icon"></i>
+                    <span class="vocab-word">GO</span>
+                    <span class="vocab-def">(Ir)</span>
+                    <p style="font-size: 0.9rem; margin-top: 5px;">"I <strong>go</strong> home."</p>
+                </div>
+                <div class="vocab-card">
+                    <i class="fa-solid fa-person-walking-arrow-loop-left vocab-icon"></i>
+                    <span class="vocab-word">COME</span>
+                    <span class="vocab-def">(Venir)</span>
+                    <p style="font-size: 0.9rem; margin-top: 5px;">"<strong>Come</strong> here."</p>
+                </div>
+                <div class="vocab-card">
+                    <i class="fa-solid fa-hand-holding-medical vocab-icon"></i>
+                    <span class="vocab-word">NEED</span>
+                    <span class="vocab-def">(Necesitar)</span>
+                    <p style="font-size: 0.9rem; margin-top: 5px;">"I <strong>need</strong> water."</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Sustantivos y Conectores -->
+        <div class="slide">
+            <h2>2. Sustantivos y Conectores</h2>
+            <div class="two-columns">
+                <div style="background: var(--bg-light-blue); padding: 20px; border-radius: 15px;">
+                    <h3 style="text-align: center;"><i class="fa-solid fa-cube"></i> Sustantivos (Cosas)</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li><strong>House</strong> (Casa) <i class="fa-solid fa-house" style="color: #666; font-size: 0.8em;"></i></li>
+                        <li><strong>Food</strong> (Comida) <i class="fa-solid fa-utensils" style="color: #666; font-size: 0.8em;"></i></li>
+                        <li><strong>Time</strong> (Tiempo) <i class="fa-solid fa-clock" style="color: #666; font-size: 0.8em;"></i></li>
+                    </ul>
+                </div>
+                <div style="border: 2px dashed var(--primary-orange); padding: 20px; border-radius: 15px;">
+                    <h3 style="text-align: center;"><i class="fa-solid fa-link"></i> Conectores</h3>
+                    <p><strong>AND (y):</strong> <br>Coffee <strong>and</strong> milk. (Café y leche)</p>
+                    <hr style="border-top: 1px solid #ddd;">
+                    <p><strong>BUT (pero):</strong> <br>Good <strong>but</strong> hot. (Bueno pero caliente)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: Video -->
+        <div class="slide">
+            <h2><i class="fa-solid fa-headphones"></i> Escucha y Repite</h2>
+            <p>Mira este video corto. Escucha la pronunciación y repite en voz alta.</p>
+            <div class="video-container">
+                <iframe width="100%" height="315" src="https://youtu.be/yVNXmdF8Nsk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <p style="font-size: 0.9rem; margin-top: 10px; color: #666;">*Si el video no carga, recuerda: GO (gou), COME (cam), NEED (nid).</p>
+        </div>
+
+        <!-- SLIDE 7: Exploración Visual -->
+        <div class="slide">
+            <h2>En la Cafetería</h2>
+            <p>Observa la imagen. ¿Qué palabras usarías aquí? (Haz clic en los botones)</p>
+            <div class="two-columns">
+                <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Cafetería" class="responsive-img">
+                <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                    
+                    <!-- FIX: Caja de feedback en lugar de alertas -->
+                    <div id="cafe-feedback">
+                        <i class="fa-solid fa-circle-info" style="margin-right: 8px;"></i> Haz clic en una opción abajo para ver su significado.
+                    </div>
+
+                    <button class="option-btn" onclick="showCafeText('<strong>I want coffee</strong> = Yo quiero café')"><i class="fa-solid fa-mug-hot"></i> Coffee (Café)</button>
+                    <button class="option-btn" onclick="showCafeText('<strong>Good food</strong> = Buena comida')"><i class="fa-solid fa-burger"></i> Food (Comida)</button>
+                    <button class="option-btn" onclick="showCafeText('<strong>Please</strong> = Por favor')"><i class="fa-solid fa-hand-sparkles"></i> Please (Por favor)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Actividad 1 -->
+        <div class="slide">
+            <h2><i class="fa-solid fa-pencil"></i> Práctica 1: Comprensión</h2>
+            <p>Selecciona la traducción correcta para: <strong>"I need food"</strong></p>
+            
+            <div class="activity-options">
+                <button class="option-btn" onclick="checkAnswer(this, false, 'feedback1', 'Casi. \'Go\' significa Ir.')">A) Yo voy a casa</button>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'feedback1', '¡Correcto! Need = Necesitar y Food = Comida.')">B) Yo necesito comida</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'feedback1', 'Intenta de nuevo. \'Come\' significa Venir.')">C) Yo vengo bien</button>
+            </div>
+            <div id="feedback1" class="feedback"></div>
+        </div>
+
+        <!-- SLIDE 9: Actividad 2 -->
+        <div class="slide">
+            <h2><i class="fa-solid fa-puzzle-piece"></i> Completa la frase</h2>
+            <div class="two-columns">
+                <div style="text-align: center;">
+                    <h1 style="color: var(--primary-dark);">"Coffee _____ Milk"</h1>
+                    <p>(Café <strong>y</strong> leche)</p>
+                </div>
+                <div class="activity-options">
+                    <button class="option-btn" onclick="checkAnswer(this, false, 'feedback2', 'Oops. \'But\' significa \'pero\'.')">A) But</button>
+                    <button class="option-btn" onclick="checkAnswer(this, true, 'feedback2', '¡Excelente! \'And\' se usa para unir cosas.')">B) And</button>
+                    <button class="option-btn" onclick="checkAnswer(this, false, 'feedback2', 'Incorrecto. \'Or\' significa \'o\'.')">C) Or</button>
+                    <div id="feedback2" class="feedback"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: Aplicación -->
+        <div class="slide">
+            <h2>Aplicación Práctica</h2>
+            <div class="two-columns">
+                <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Mujer saludando" class="responsive-img">
+                <div>
+                    <p>Imagina que alguien te llama desde la puerta.</p>
+                    <div style="background-color: var(--bg-light-blue); padding: 15px; border-left: 5px solid var(--primary-orange); border-radius: 5px;">
+                        <p><strong>Persona:</strong> "Please, <strong>come</strong> here!" (Por favor, ven aquí)</p>
+                        <p><strong>Tú:</strong> "Ok, I <strong>go</strong>." (Ok, yo voy)</p>
+                    </div>
+                    <p style="margin-top: 20px;"><i class="fa-regular fa-comment-dots"></i> <strong>Reto:</strong> Dilo en voz alta ahora mismo.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: Repaso -->
+        <div class="slide">
+            <h2><i class="fa-solid fa-rotate-right"></i> Repaso Rápido</h2>
+            <p>¿Qué par de palabras significa <strong>"Casa"</strong> y <strong>"Tiempo"</strong>?</p>
+            
+            <div class="activity-options">
+                <button class="option-btn" onclick="checkAnswer(this, true, 'feedback3', '¡Perfecto! Has memorizado el vocabulario.')">A) House & Time</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'feedback3', 'Incorrecto. \'Food\' es comida.')">B) Food & House</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'feedback3', 'Incorrecto. \'Go\' es un verbo (ir).')">C) Go & Time</button>
+            </div>
+            <div id="feedback3" class="feedback"></div>
+        </div>
+
+        <!-- SLIDE 12: Cierre -->
+        <div class="slide">
+            <i class="fa-solid fa-star" style="font-size: 80px; color: var(--primary-yellow); margin-bottom: 20px;"></i>
+            <h1 style="color: var(--primary-orange);">¡Felicidades! Great Job!</h1>
+            <p>Has completado tu primera lección de inglés.</p>
+            
+            <div style="background-color: var(--bg-light-blue); padding: 20px; border-radius: 15px; margin: 20px 0; max-width: 600px;">
+                <h3 style="text-align: center; margin-top: 0;">Reflexión Final</h3>
+                <p>¿Cuál fue la palabra más fácil para ti hoy? ¡Intenta usarla mañana!</p>
+            </div>
+
+            <p style="color: var(--primary-blue); font-weight: bold;">Próxima lección: Saludos y Presentaciones.</p>
+        </div>
+
+        <!-- Barra de Progreso -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT -->
+    <script>
+        // Variables de estado
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progress-bar');
+        const prevBtn = document.querySelector('.prev-btn');
+        const nextBtn = document.querySelector('.next-btn');
+
+        // Función para cambiar diapositiva
+        function changeSlide(direction) {
+            // Ocultar actual
+            slides[currentSlideIndex].classList.remove('active');
+            
+            // Calcular nueva
+            currentSlideIndex += direction;
+
+            // Límites de seguridad
+            if (currentSlideIndex < 0) currentSlideIndex = 0;
+            if (currentSlideIndex >= slides.length) currentSlideIndex = slides.length - 1;
+
+            // Mostrar nueva
+            slides[currentSlideIndex].classList.add('active');
+
+            // Actualizar interfaz
+            updateUI();
+        }
+
+        // Actualizar botones y barra de progreso
+        function updateUI() {
+            // Progreso
+            const progress = ((currentSlideIndex + 1) / slides.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Visibilidad de flechas
+            if (currentSlideIndex === 0) {
+                prevBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+            }
+
+            if (currentSlideIndex === slides.length - 1) {
+                nextBtn.classList.add('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+            }
+        }
+
+        // FIX: Función para mostrar texto en la Cafetería (Slide 7)
+        function showCafeText(text) {
+            const display = document.getElementById('cafe-feedback');
+            display.innerHTML = text;
+            display.style.backgroundColor = '#d1e7dd'; // Color verdoso de éxito
+            
+            // Breve parpadeo para indicar actualización
+            setTimeout(() => {
+                display.style.backgroundColor = '#e8f4fd'; // Vuelta al azul claro
+            }, 300);
+        }
+
+        // Lógica de Actividades (Feedback)
+        function checkAnswer(btn, isCorrect, feedbackId, text) {
+            const feedbackEl = document.getElementById(feedbackId);
+            const parent = btn.parentElement;
+            const buttons = parent.querySelectorAll('.option-btn');
+
+            // Resetear estilos
+            buttons.forEach(b => {
+                b.classList.remove('correct', 'incorrect');
+                b.disabled = false;
+            });
+
+            feedbackEl.style.display = 'block';
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                feedbackEl.style.backgroundColor = '#d4edda';
+                feedbackEl.style.color = '#155724';
+                feedbackEl.textContent = text;
+                // Bloquear otros botones si es correcto
+                buttons.forEach(b => { if (b !== btn) b.disabled = true; });
+            } else {
+                btn.classList.add('incorrect');
+                feedbackEl.style.backgroundColor = '#f8d7da';
+                feedbackEl.style.color = '#721c24';
+                feedbackEl.textContent = text;
+            }
+        }
+
+        // Inicializar UI
+        updateUI();
+
+    </script>
+</body>
+</html>
